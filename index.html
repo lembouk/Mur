@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Meurtre au Belvédère</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#0b1a24">
+<title>Murder Party</title>
 <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;0,6..96,700;1,6..96,500&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* Concept : une nuit de black-out dans un hôtel. Fond pétrole, une seule lumière (la lampe),
-   personnages présentés comme des porte-clés d'hôtel, horloge arrêtée à 23:55. */
+/* Concept : une nuit, une lampe. Fond pétrole, une seule lumière,
+   personnages présentés comme des porte-clés d'hôtel, horloge arrêtée à l'heure du crime. */
 :root{
   color-scheme: dark;
   --night:#0b1a24;
@@ -28,11 +28,13 @@
   --f-mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,monospace;
 }
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;background:#0b1a24}
+[hidden]{display:none!important}
 body{
-  background:var(--night);color:var(--text);
+  margin:0;background:var(--night);color:var(--text);
   font-family:var(--f-body);font-size:16px;line-height:1.5;
-  padding-block:0 calc(88px + env(safe-area-inset-bottom,0px));
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:calc(88px + env(safe-area-inset-bottom,0px));
   padding-left:max(16px,env(safe-area-inset-left,0px));
   padding-right:max(16px,env(safe-area-inset-right,0px));
 }
@@ -44,7 +46,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 
 .top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding-block:14px 4px}
 .brand,.gametag,.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
-.gametag{letter-spacing:.08em}
+.gametag{letter-spacing:.08em;text-align:right}
 
 .tab{display:none;padding-block:12px 24px}
 .tab.on{display:block}
@@ -160,14 +162,13 @@ button{font:inherit;color:inherit;cursor:pointer}
 .toast{position:fixed;z-index:20;top:calc(env(safe-area-inset-top,0px) + 12px);left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));max-width:528px;margin-inline:auto;background:var(--lamp);color:var(--lamp-ink);font-weight:600;border-radius:12px;padding:12px 16px;text-align:center}
 
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
-html{background:#0b1a24}body{margin:0}[hidden]{display:none!important}</style>
+</style>
 </head>
 <body>
 
-
 <div class="wrap">
   <header class="top">
-    <div class="brand">Hôtel Belvédère</div>
+    <div class="brand" id="brand">Murder party</div>
     <div class="gametag" id="gametag"></div>
   </header>
   <main>
@@ -191,74 +192,183 @@ html{background:#0b1a24}body{margin:0}[hidden]{display:none!important}</style>
 'use strict';
 var $=function(s){return document.querySelector(s);};
 
-/* ---------- Contenu du jeu ---------- */
-var IDS=['colette','victor','iris'];
+/* ---------- Les trois histoires ----------
+   Le premier chiffre du code choisit l’histoire (1, 2 ou 3).
+   Le reste du code désigne le coupable (a, b ou c). */
+var IDS=['a','b','c'];
 
-var CH={
-  colette:{name:'Colette Marchand',title:'Directrice de l’hôtel',tag:'Réception',fem:true,
-    lien:'Roche t’a promue il y a dix ans. Ce soir, il t’a dit avoir découvert que tu gonflais les factures des fournisseurs. Les preuves sont dans son carnet noir. Il voulait te dénoncer lundi.',
-    alibi:'« J’étais à la réception, je cherchais des bougies pendant la panne. »',
-    secret:'Pendant la panne, tu t’es éclipsée cinq minutes dans la réserve pour grignoter la pièce montée du mariage de demain, avant de revenir à la réception.'},
-  victor:{name:'Victor Alban',title:'Chef cuisinier',tag:'Cuisine',fem:false,
-    lien:'Roche comptait vendre les cuisines à une chaîne de fast-food et te licencier à la fin du mois. Le contrat de vente est dans son carnet noir.',
-    alibi:'« J’étais à la cave, je vérifiais les bouteilles pendant la panne. »',
-    secret:'À la cave, tu avais enfin du réseau : tu passais un coup de fil secret au Majestic, l’hôtel concurrent, pour te faire embaucher.'},
-  iris:{name:'Iris Delacroix',title:'Cliente de la suite 305',tag:'Suite 305',fem:true,
-    lien:'Tu es la critique gastronomique anonyme dont le blog a fait fuir les clients du Belvédère. Ce soir, Roche t’a démasquée au bar et menace de révéler ton nom. Il l’a noté dans son carnet noir.',
-    alibi:'« Je n’ai pas quitté ma suite de la soirée : je lisais à la bougie. »',
-    secret:'Tu as une peur panique du noir. Pendant la coupure, tu t’es cachée sous les draps, la lampe du téléphone sous le menton, sans bouger.'}
-};
+var STORIES=[
+/* ===== 1. LE BORÉAL ===== */
+{n:1,title:'Le Boréal',tagline:'Train de nuit · diamant volé',time:'02:15',timeAria:'2 heures 15',
+ win:'02:10 à 02:25',window:'pendant le tunnel, de 2 h 10 à 2 h 25',
+ victim:'le baron Hugo de Vaucelles',victimLien:'le baron',
+ scene:'Cette nuit, le train de nuit Boréal file de Paris vers Vienne. À 2 h 10, il s’engouffre dans un long tunnel : l’électricité saute dans tous les wagons, quinze minutes de noir total. À 2 h 25, quand la lumière revient, on découvre le baron Hugo de Vaucelles, collectionneur de bijoux, mort dans sa cabine n°7, frappé avec un pied de lampe en laiton. Son coffret est ouvert et le diamant « l’Aurore » a disparu. Le train ne s’arrête qu’à Vienne : le coupable est l’un d’entre vous trois.',
+ clue1:'La montre du baron, brisée dans sa chute, s’est arrêtée à 2 h 15, en plein tunnel. La porte de la cabine n’a pas été forcée et le coffret a été ouvert avec la petite clé du baron, sans effraction.',
+ CH:{
+  a:{name:'Lucien Marchetti',title:'Contrôleur du train',tag:'Contrôleur',fem:false,
+    lien:'Tu es criblé de dettes : tu dois 20 000 € à des gens peu aimables. Tout le train parle du diamant « l’Aurore » que le baron transporte dans son coffret.',
+    alibi:'« Pendant le tunnel, j’étais en tête de train, je vérifiais les portes et les fusibles. »',
+    secret:'Vers 2 h 18, épuisé, tu t’es assoupi sur la banquette de la cabine du personnel jusqu’à la fin du tunnel, ce qui est strictement interdit en service.'},
+  b:{name:'Margaux Delorme',title:'Comédienne, cabine 8',tag:'Cabine 8',fem:true,
+    lien:'Le diamant « l’Aurore » appartenait à ta famille, avant que le baron le rachète à ta grand-mère pour trois fois rien. Tu comptais le lui reprendre.',
+    alibi:'« Je répétais mon texte dans ma cabine, porte fermée. »',
+    secret:'Tu voyages avec un chat clandestin, Pompon, strictement interdit à bord. Pendant le tunnel, tu le cachais sous ta couchette pour qu’il ne miaule pas.'},
+  c:{name:'Anton Weiss',title:'Chef du wagon-restaurant',tag:'Restaurant',fem:false,
+    lien:'Le baron t’avait promis de financer ton restaurant à Vienne. Ce soir, il a annulé devant tout le wagon-restaurant en se moquant de ta cuisine.',
+    alibi:'« J’étais au wagon-restaurant, je rangeais la vaisselle dans le noir. »',
+    secret:'Peu après 2 h 15, tu t’es enfermé dans la chambre froide du wagon-restaurant pour pleurer de rage en rédigeant ta lettre de démission, que tu n’enverras jamais.'}
+ },
+ SCN:{
+  a:{
+   clue2:'Dans le couloir devant la cabine 7 : des traces de graisse noire, celle des essieux. On n’en trouve que dans le local technique, dont seuls le contrôleur et le chef du wagon-restaurant ont la clé.',
+   story:'C’est Lucien ! Dès l’entrée dans le tunnel, il a quitté la tête de train, traversé le local technique (la graisse) et ouvert la cabine 7 avec son passe de contrôleur. Le baron l’a surpris, Lucien a saisi le pied de lampe et frappé à 2 h 15. Il a pris la petite clé dans le gilet du baron, ouvert le coffret et caché le diamant dans la boîte à fusibles du wagon.',
+   p:{
+    a:{did:'À 2 h 10, le tunnel. Tu quittes la tête de train et tu traverses le local technique, de la graisse plein les mains. Avec ton passe de contrôleur, tu entres dans la cabine 7. Le baron te surprend, tu le frappes à 2 h 15 avec le pied de lampe. Tu prends la petite clé dans son gilet, tu ouvres le coffret et tu caches le diamant dans la boîte à fusibles du wagon, que tu connais mieux que personne.',
+       plan:'La graisse te désigne, toi ou Anton. Retourne-la contre le chef du wagon-restaurant, qui traverse le local technique pour ses livraisons. Ne parle jamais de ton passe.',
+       knows:'Personne ne t’a vu. Seuls risques : Anton, voisin du local technique, et Margaux, qui a pu t’entendre à travers la cloison.'},
+    b:{knows:'Pendant le tunnel, à travers la cloison, tu as entendu un passe magnétique dans la serrure de la cabine 7, puis un bruit sourd vers 2 h 15, puis des pas pressés vers l’arrière du train.'},
+    c:{knows:'À 2 h 12, depuis la porte du wagon-restaurant, ta lampe a éclairé Lucien qui sortait du local technique, côté queue du train, alors qu’il prétend être resté en tête.'}
+   }},
+  b:{
+   clue2:'Sur le pied de lampe : une fine poudre blanche, farine ou poudre de maquillage, impossible à dire. Seuls la comédienne et le chef du wagon-restaurant en ont sur eux.',
+   story:'C’est Margaux ! Le baron lui avait donné rendez-vous dans sa cabine pendant le tunnel « pour parler du diamant ». Il s’est moqué d’elle et a refusé de le rendre. À 2 h 15, elle a saisi le pied de lampe et frappé. Elle a pris la petite clé dans son gilet, ouvert le coffret et caché le diamant dans la caisse de transport de son chat clandestin.',
+   p:{
+    b:{did:'Le baron t’avait proposé de passer dans sa cabine pendant le tunnel « pour parler du diamant ». À 2 h 10, tu y vas par le couloir. Il refuse encore de te rendre le diamant de ta famille et se moque de toi. À 2 h 15, tu le frappes avec le pied de lampe. Tu prends la petite clé dans son gilet, tu ouvres le coffret et tu caches le diamant dans la caisse de ton chat clandestin.',
+       plan:'La poudre blanche te désigne, toi ou Anton. Joue la comédienne : accuse le chef, avec beaucoup de nuances.',
+       knows:'Lucien a pu te croiser dans le couloir, et Anton a peut-être entendu le baron te donner rendez-vous.'},
+    a:{knows:'À 2 h 12, en faisant ta ronde, ta lampe a éclairé Margaux qui sortait de sa cabine 8 pour aller frapper à la 7, alors qu’elle jure être restée enfermée.'},
+    c:{knows:'À 1 h 50, au wagon-restaurant, tu as entendu le baron glisser à Margaux : « Passez me voir dans ma cabine pendant le tunnel, on parlera de votre précieux diamant. »'}
+   }},
+  c:{
+   clue2:'Sur la moquette de la cabine 7 : des éclats d’un verre à champagne brisé et une odeur de champagne. Seuls le chef du wagon-restaurant et le contrôleur assurent le service de nuit.',
+   story:'C’est Anton ! Le baron lui avait fait monter une bouteille « pour enterrer la hache de guerre ». Dans le noir, il l’a de nouveau ridiculisé. À 2 h 15, Anton a frappé avec le pied de lampe, pris la petite clé dans le gilet du baron, ouvert le coffret et caché le diamant dans un sac de farine du wagon-restaurant.',
+   p:{
+    c:{did:'Le baron t’avait fait monter une bouteille de champagne en cabine à 2 h 10 « pour enterrer la hache de guerre ». Dans le noir, il t’a de nouveau ridiculisé. À 2 h 15, tu l’as frappé avec le pied de lampe, un verre se brisant sur la moquette. Tu as pris la petite clé dans son gilet, ouvert le coffret et caché le diamant dans un sac de farine du wagon-restaurant.',
+       plan:'Le verre brisé te désigne, toi ou Lucien, qui assure aussi le service de nuit. Accuse-le : son passe ouvre toutes les cabines. Ne parle jamais de la bouteille.',
+       knows:'Lucien a pu t’apercevoir dans le couloir avec ton plateau, et Margaux a peut-être entendu un verre se briser derrière la cloison.'},
+    a:{knows:'À 2 h 12, ta lampe a éclairé Anton dans le couloir des cabines, un plateau à la main, alors qu’il prétend n’avoir pas quitté le wagon-restaurant.'},
+    b:{knows:'Vers 2 h 15, à travers la cloison, tu as entendu un verre se briser, puis une voix d’homme crier : « Un cuisinier ne sera jamais qu’un cuisinier ! », puis un bruit sourd.'}
+   }}
+ }},
 
-var SCENE='Cette nuit, une tempête s’abat sur l’Hôtel Belvédère. À 23 h 50, le courant saute : quinze minutes de noir complet. À minuit cinq, quand la lumière revient, on découvre Maximilien Roche, le propriétaire, mort dans son bureau du troisième étage, frappé avec un serre-livres en bronze. Son coffre est ouvert, et son carnet noir, où il notait tout, a disparu. Les routes sont coupées : le coupable est l’un d’entre vous trois.';
-var CLUE1='La montre de Roche, brisée dans sa chute, s’est arrêtée à 23 h 55, en plein black-out. La porte du bureau n’a pas été forcée, et le coffre a été ouvert avec son code, sans effraction.';
+/* ===== 2. LA NOCE MAUDITE ===== */
+{n:2,title:'La Noce maudite',tagline:'Mariage · feu d’artifice · testament volé',time:'00:15',timeAria:'minuit 15',
+ win:'00:10 à 00:25',window:'pendant la coupure, de 0 h 10 à 0 h 25',
+ victim:'Tonton Gérard Pinchon',victimLien:'Tonton Gérard',
+ scene:'Minuit au château de Roquefeuil. Le mariage de Prune et Léo bat son plein quand, à 0 h 10, le feu d’artifice fait sauter les plombs : quinze minutes d’obscurité totale. À 0 h 25, quand la lumière revient, on découvre Tonton Gérard Pinchon, l’oncle richissime, mort dans la salle des cadeaux, frappé avec un magnum de champagne. Quelques minutes plus tôt, il avait annoncé au micro qu’il réécrivait son testament lundi. L’enveloppe de ce nouveau testament a disparu. Le château est isolé : le coupable est l’un d’entre vous trois.',
+ clue1:'La montre de Tonton Gérard, brisée dans sa chute, s’est arrêtée à 0 h 15, en pleine coupure. La porte de la salle des cadeaux n’a pas été forcée et rien n’a été cassé, à part le magnum.',
+ CH:{
+  a:{name:'Prune Maréchal',title:'La mariée',tag:'Mariée',fem:true,
+    lien:'Tonton Gérard paie le mariage. Il a juré de te déshériter parce que tu refuses de baptiser ton futur fils Gérard. Son nouveau testament doit entériner la décision.',
+    alibi:'« J’étais dans la suite nuptiale, je recousais ma robe déchirée. »',
+    secret:'Dans la suite nuptiale, tu écrivais en cachette un message à ton ex, en doutant de ton mariage. Tu ne l’as finalement pas envoyé.'},
+  b:{name:'Bastien Roy',title:'Le témoin du marié',tag:'Témoin',fem:false,
+    lien:'Tu dois 8 000 € à Tonton Gérard. Son nouveau testament devait t’obliger à les rembourser dès lundi.',
+    alibi:'« J’étais dans le jardin avec les invités, devant le feu d’artifice. »',
+    secret:'Tu as perdu l’alliance de Léo, que tu devais garder, et tu l’as cherchée à quatre pattes dans l’herbe pendant tout le feu d’artifice.'},
+  c:{name:'Solène Aubry',title:'La wedding planner',tag:'Organisation',fem:true,
+    lien:'Tonton Gérard refuse de payer ta facture de 40 000 € et menace de ruiner ta réputation. L’enveloppe contient aussi sa lettre de refus.',
+    alibi:'« J’étais en cuisine pour rassurer le traiteur. »',
+    secret:'Vers 0 h 20, tu t’es réfugiée aux toilettes pour pleurer de fatigue en mangeant des petits-fours en cachette.'}
+ },
+ SCN:{
+  a:{
+   clue2:'Sur le magnum : des paillettes dorées. On n’en trouve que sur la robe de la mariée et dans les confettis de la wedding planner.',
+   story:'C’est Prune ! Pendant le feu d’artifice, elle a quitté la suite nuptiale, robe retroussée, pour affronter son oncle dans la salle des cadeaux. Il a refusé de renoncer à la déshériter : elle a saisi le magnum et frappé à 0 h 15. Elle a pris l’enveloppe, l’a glissée dans son bouquet de mariée et est retournée à la fête, décoiffée mais « innocente ».',
+   p:{
+    a:{did:'À 0 h 10, les plombs sautent. Tu quittes la suite nuptiale, robe retroussée, et tu rejoins Tonton Gérard dans la salle des cadeaux. Il refuse de renoncer à te déshériter. À 0 h 15, tu saisis le magnum et tu frappes. Tu prends l’enveloppe du testament et tu la glisses dans ton bouquet de mariée.',
+       plan:'Les paillettes te désignent, toi ou Solène. Retourne-les contre la wedding planner : elle manie des confettis toute la soirée.',
+       knows:'Personne ne t’a vue. Seuls risques : Solène, qui passait dans la cour, et Bastien, qui a pu apercevoir ta robe depuis le jardin.'},
+    c:{knows:'À 0 h 12, depuis la cuisine, ta lampe a éclairé Prune, robe retroussée, qui courait vers l’aile des cadeaux, alors qu’elle jure n’avoir pas bougé de la suite nuptiale.'},
+    b:{knows:'À la lueur du feu d’artifice, vers 0 h 16, tu as vu par la fenêtre de la salle des cadeaux une robe blanche et un papier crème.'}
+   }},
+  b:{
+   clue2:'Sur le magnum et sur la poignée : de la poudre noire de feu d’artifice. Seuls le témoin, chargé d’allumer le feu, et la wedding planner, qui garde les clés du local, y ont touché.',
+   story:'C’est Bastien ! Chargé d’allumer le feu d’artifice, il a laissé la mèche brûler et couru à la salle des cadeaux (la poudre noire sur ses mains). Gérard l’y attendait pour réclamer ses 8 000 €. Bastien l’a assommé avec le magnum à 0 h 15, a pris le testament et l’a caché dans le tube d’une fusée inutilisée.',
+   p:{
+    b:{did:'À 0 h 10, tu allumes le feu d’artifice : les plombs sautent. Tu cours à la salle des cadeaux, où Tonton Gérard t’attendait pour te réclamer tes 8 000 €. Il te menace d’un testament qui t’y oblige. À 0 h 15, tu le frappes avec le magnum. Tu prends l’enveloppe et tu la caches dans le tube d’une fusée inutilisée.',
+       plan:'La poudre noire te désigne, toi ou Solène, qui a les clés du local. Accuse-la. Tu peux aussi inventer que tu cherchais l’alliance à quatre pattes dans l’herbe : honteux, donc crédible.',
+       knows:'Solène t’a peut-être vu quitter le jardin, et Prune a pu entendre Gérard hurler : « Tu me dois 8 000 € ! »'},
+    c:{knows:'À 0 h 11, depuis la fenêtre de la cuisine, ta lampe a éclairé Bastien qui quittait le jardin en courant, des mèches de fusée encore à la main, alors qu’il jure n’avoir pas quitté les invités.'},
+    a:{knows:'À 0 h 15, par la fenêtre ouverte de la suite nuptiale, tu as entendu la voix de Gérard hurler depuis la salle des cadeaux, juste en dessous : « Tu me dois 8 000 € ! », puis un bruit sourd.'}
+   }},
+  c:{
+   clue2:'Sur la poignée et le magnum : de la crème de mini-éclair, celle du buffet. Seules la mariée, qui y a goûté, et la wedding planner, qui les a disposés, y ont touché.',
+   story:'C’est Solène ! Convoquée par Gérard pendant le feu d’artifice, elle l’a rejoint à 0 h 10, les doigts pleins de crème de mini-éclair. Il lui a juré qu’il ne paierait jamais sa facture et la ruinerait. À 0 h 15, elle a saisi le magnum et frappé, pris l’enveloppe et l’a rangée dans sa sacoche de planning, entre deux cartes de visite.',
+   p:{
+    c:{did:'Gérard t’a convoquée à 0 h 10 dans la salle des cadeaux pour t’annoncer qu’il ne paierait jamais ta facture de 40 000 € et qu’il te ruinerait. À 0 h 15, tu saisis le magnum et tu frappes. Tu prends l’enveloppe du testament et tu la caches dans ta sacoche de planning.',
+       plan:'La crème de mini-éclair te désigne, toi ou Prune. Retourne-la contre la mariée : elle a goûté tous les éclairs.',
+       knows:'Prune a pu te voir quitter la cuisine, et Bastien a peut-être entendu Gérard te convoquer.'},
+    a:{knows:'À 0 h 13, depuis la fenêtre de la suite nuptiale, tu as vu dans la cour Solène sortir de la cuisine, sa sacoche sous le bras, et se diriger vers l’aile des cadeaux, alors qu’elle jure n’avoir pas bougé de la cuisine.'},
+    b:{knows:'Dans le jardin, juste avant le feu d’artifice, tu as entendu Gérard dire à Solène : « Venez à la salle des cadeaux pendant le feu d’artifice, on va parler de votre facture. »'}
+   }}
+ }},
 
-var SCN={
-  colette:{
-    clue2:'Sur la poignée du coffre et le coin du bureau : de la crème pâtissière encore fraîche. Quelqu’un avait les doigts sucrés.',
-    story:'C’est Colette ! Pendant le black-out, elle a quitté la réception, goûté la pièce montée dans la réserve (d’où la crème), puis pris l’escalier de service et ouvert le bureau avec son passe maître. Roche l’a menacée de la dénoncer : elle a frappé à 23 h 55, ouvert le coffre, volé le carnet noir et l’a caché parmi les objets trouvés. À minuit deux, elle était de retour à la réception, bougies en main.',
-    p:{
-      colette:{
-        did:'À 23 h 50, noir complet. Ton passe maître en poche, tu as quitté la réception, goûté la pièce montée dans la réserve (la crème !), puis monté par l’escalier de service. Tu as ouvert le bureau avec ton passe, Roche t’a menacée, tu as frappé à 23 h 55 avec le serre-livres. Tu as ouvert le coffre, pris le carnet noir et tu l’as caché dans la boîte des objets trouvés, à la réception, où tu étais revenue à minuit deux.',
-        plan:'La crème pâtissière te désigne, toi comme le chef. Retourne-la contre Victor. Ne parle jamais du passe maître.',
-        knows:'Personne ne t’a vue monter. Seul risque : Victor est passé devant la réception en descendant à la cave, et Iris a pu t’entendre dans le couloir.'},
-      victor:{knows:'À 23 h 52, en descendant à la cave, ta lampe a éclairé le comptoir de la réception : personne, aucune bougie, pas de Colette.'},
-      iris:{knows:'Vers 23 h 54, tu as entendu dans le couloir le bip d’un passe magnétique, puis, à 23 h 56, des pas pressés dans l’escalier de service. Ça sentait la vanille et le caramel.'}
-    }},
-  victor:{
-    clue2:'Sur la moquette, entre l’escalier de service et le bureau : des éclats de cire rouge, celle qui scelle les grands crus. Elle vient de la cave, dont seuls le chef et la directrice ont la clé.',
-    story:'C’est Victor ! Quand le courant a sauté, il a quitté la cave (la cire rouge sur ses semelles) et monté l’escalier de service. Roche avait laissé sa porte entrouverte pour lui annoncer la vente des cuisines. Victor a explosé et frappé à 23 h 55 avec le serre-livres. Il connaissait le code du coffre, a pris le carnet noir et l’a glissé dans un casier à vin, à la cave.',
-    p:{
-      victor:{
-        did:'À 23 h 50, la lumière saute. Tu quittes la cave et tu montes par l’escalier de service. Roche avait laissé sa porte entrouverte : il t’annonce la vente des cuisines, tu perds ton sang-froid et tu le frappes à 23 h 55 avec le serre-livres. Tu ouvres le coffre (tu as déjà vu son code), tu prends le carnet noir et tu retournes le cacher dans un casier à vin.',
-        plan:'La cire rouge vient de ta cave, mais Colette en a aussi la clé : accuse-la, elle y descend pour les inventaires. Le coup de fil au Majestic est vrai : avoue-le pour sembler sincère, mais place-le toute la nuit à la cave.',
-        knows:'Colette a pu t’apercevoir depuis la réception, et Iris a peut-être entendu ton cri : « Mes cuisines, jamais ! »'},
-      colette:{knows:'À 23 h 51, ta lampe torche a éclairé Victor qui sortait de l’escalier de la cave et montait l’escalier de service, au lieu de rester à la cave. Tu as aussi la clé de la cave, mais tu n’y es pas descendue.'},
-      iris:{knows:'Vers 23 h 56, à travers le mur, tu as entendu une voix d’homme crier « Mes cuisines, jamais ! », puis un bruit sourd.'}
-    }},
-  iris:{
-    clue2:'Sur le bureau : deux tasses de tilleul encore tièdes, dont une avec une trace de rouge à lèvres. Roche attendait une visiteuse.',
-    story:'C’est Iris ! Démasquée par Roche au bar, elle était sa visiteuse de minuit (les deux tilleuls). Il a ouvert le coffre pour lui montrer ses preuves, puis a menacé de la dénoncer. Dans le noir, elle a saisi le serre-livres et frappé à 23 h 55. Elle a emporté le carnet noir sous son matelas et a joué la cliente terrorisée par l’obscurité.',
-    p:{
-      iris:{
-        did:'Roche t’a donné rendez-vous dans son bureau avant minuit. Tu y es allée à 23 h 45. Il a ouvert le coffre pour te montrer ses preuves, tu as supplié, il a refusé. Quand le courant a sauté, tu as saisi le serre-livres et frappé à 23 h 55. Tu as pris le carnet noir et tu l’as glissé sous ton matelas.',
-        plan:'Les deux tasses et le rouge à lèvres te désignent, toi ou Colette. Ta peur du noir est un excellent rôle (« j’étais sous les draps »), personne ne peut la vérifier.',
-        knows:'Colette a pu te voir frapper à la porte du bureau à 23 h 45, et Victor a pu entendre Roche t’inviter au bar.'},
-      colette:{knows:'À 23 h 45, en montant des serviettes au troisième, tu as vu Iris frapper à la porte du bureau de Roche, alors qu’elle jure ne pas avoir quitté sa suite. Tu es redescendue à la réception avant la coupure.'},
-      victor:{knows:'À 23 h 30, au bar, tu as entendu Roche glisser à Iris : « Passez me voir avant minuit, on va régler ça entre quatre yeux. »'}
-    }}
-};
+/* ===== 3. SÉMINAIRE À HAUT RISQUE ===== */
+{n:3,title:'Séminaire à haut risque',tagline:'Entreprise · karaoké · plan de licenciements',time:'22:40',timeAria:'22 heures 40',
+ win:'22:30 à 22:55',window:'pendant le karaoké, de 22 h 30 à 22 h 55',
+ victim:'Édouard Lenoir',victimLien:'Édouard',
+ scene:'Séminaire annuel de l’entreprise Nimbus, au Chalet des Cimes. Ce soir, karaoké général de 22 h 30 à 22 h 55 : tout le monde chante, personne n’écoute. À 22 h 55, le barman découvre Édouard Lenoir, le PDG, mort dans la salle de direction, frappé avec son trophée « Employé du mois ». Son dossier rouge, celui du plan de licenciements annoncé pour lundi, a disparu. La tempête de neige a bloqué la route : le coupable est l’un d’entre vous trois.',
+ clue1:'La montre connectée d’Édouard a enregistré un arrêt cardiaque à 22 h 40. La porte de la salle de direction n’a pas été forcée : un badge valide l’a ouverte, ou Édouard a ouvert lui-même.',
+ CH:{
+  a:{name:'Nadia Benhamou',title:'Directrice des ressources humaines',tag:'RH',fem:true,
+    lien:'Le dossier rouge contient la liste des licenciements de lundi. Édouard t’a choisie comme « fusible » : ton nom y figure en tête, pour qu’on te rende responsable du plan social.',
+    alibi:'« J’étais dans le salon, je relisais mon discours de demain. »',
+    secret:'Dans le salon, tu appelais en cachette un chasseur de têtes : tu cherches déjà un autre emploi.'},
+  b:{name:'Mathis Roy',title:'Directeur technique',tag:'Technique',fem:false,
+    lien:'Édouard allait vendre l’entreprise à un concurrent sans t’en parler : tu perdais toutes tes parts. Le contrat de vente est dans le dossier rouge.',
+    alibi:'« J’étais sur la terrasse, au téléphone avec mes équipes. »',
+    secret:'Tu étais sorti pour échapper à ton tour de karaoké : tu chantes affreusement faux et tu en as une trouille bleue.'},
+  c:{name:'Léa Fontaine',title:'Stagiaire',tag:'Stagiaire',fem:true,
+    lien:'Édouard s’est attribué l’algorithme que tu as écrit en trois mois. Le dossier rouge contient la preuve de la copie. Il t’a refusé le crédit et l’embauche.',
+    alibi:'« J’étais au bar, je servais les verres pour dépanner. »',
+    secret:'Vers 22 h 45, tu t’es endormie debout derrière le bar, épuisée par trois nuits blanches de code.'}
+ },
+ SCN:{
+  a:{
+   clue2:'Dans la salle de direction : un parfum de rose poivrée, celui de la boutique du chalet. Dans la bande, seules deux personnes en portent : la directrice des ressources humaines et la stagiaire.',
+   story:'C’est Nadia ! Pendant le karaoké, elle a quitté le salon avec son badge pour affronter Édouard dans la salle de direction. Il lui a confirmé qu’elle serait le « fusible » du plan social. À 22 h 40, elle a saisi le trophée « Employé du mois » et l’a frappé. Elle a pris le dossier rouge et l’a glissé dans son carton de dossiers RH, au salon.',
+   p:{
+    a:{did:'À 22 h 35, pendant le karaoké, tu quittes le salon avec ton badge et tu rejoins Édouard dans la salle de direction. Il te confirme que tu seras le « fusible » du plan social. À 22 h 40, tu saisis le trophée « Employé du mois » et tu le frappes. Tu prends le dossier rouge et tu le glisses dans ton carton de dossiers RH, dans le salon.',
+       plan:'Le parfum te désigne, toi ou Léa. Retourne-le contre la stagiaire : elle a une raison évidente d’en vouloir à Édouard.',
+       knows:'Personne ne t’a vue sortir. Seuls risques : Léa, qui a pu te voir passer devant le bar, et Mathis, qui a pu te croiser dans l’escalier.'},
+    c:{knows:'À 22 h 37, depuis le bar, tu as vu Nadia quitter le salon et monter l’escalier vers la salle de direction, alors qu’elle jure n’avoir pas bougé du salon.'},
+    b:{knows:'À 22 h 42, en revenant de la terrasse, tu as croisé dans l’escalier une odeur de rose poivrée et entendu Nadia murmurer : « Il l’a bien cherché. »'}
+   }},
+  b:{
+   clue2:'Sur le trophée : de la neige fondue et de la terre. Seules deux personnes sont sorties du chalet ce soir : le directeur technique, sur la terrasse, et la stagiaire, qui a rapporté des caisses de bouteilles.',
+   story:'C’est Mathis ! Il a quitté la terrasse enneigée par la porte de service et rejoint Édouard dans la salle de direction, où il a appris que la boîte serait vendue sans lui. À 22 h 40, il l’a frappé avec le trophée, a emporté le dossier rouge et l’a enfoui dans la neige, sous la terrasse.',
+   p:{
+    b:{did:'À 22 h 35, tu quittes la terrasse par la porte de service (la neige sur tes chaussures) et tu montes à la salle de direction. Édouard t’avoue qu’il vend la boîte sans toi. À 22 h 40, tu le frappes avec le trophée. Tu prends le dossier rouge et tu l’enfouis dans la neige, sous la terrasse.',
+       plan:'La neige te désigne, toi ou Léa, qui est sortie chercher des caisses. Accuse-la. Ta trouille du karaoké est une belle excuse : « je suis sorti pour ne pas chanter ».',
+       knows:'Personne ne t’a vu. Seuls risques : Nadia, qui travaillait dans le salon près de la porte de service, et Léa, qui a pu apercevoir tes traces dans la neige.'},
+    c:{knows:'À 22 h 36, en sortant chercher des caisses, tu as vu des traces de grosses chaussures dans la neige qui menaient de la terrasse à la porte de service. Mathis n’était plus sur la terrasse, alors qu’il jure y être resté.'},
+    a:{knows:'À 22 h 38, depuis le salon, tu as entendu la porte de service claquer, puis des pas lourds dans l’escalier et la voix de Mathis : « Tu ne vendras rien sans moi ! »'}
+   }},
+  c:{
+   clue2:'Sur le trophée : des miettes de chips au paprika, celles du distributeur de la salle de pause. Seuls le directeur technique et la stagiaire y passent leurs nuits.',
+   story:'C’est Léa ! Pendant le karaoké, elle a rejoint Édouard dans la salle de direction pour réclamer le crédit de son algorithme. Il a ri : « Tu n’es qu’une stagiaire. » À 22 h 40, elle a saisi le trophée et frappé. Elle a pris le dossier rouge, preuve de la copie, et l’a glissé sous le comptoir du bar.',
+   p:{
+    c:{did:'À 22 h 35, tu quittes le bar et tu montes à la salle de direction, des chips au paprika encore dans la poche. Édouard rit : « Tu n’es qu’une stagiaire. » À 22 h 40, tu saisis le trophée et tu le frappes. Tu prends le dossier rouge, preuve du vol de ton code, et tu le glisses sous le comptoir du bar.',
+       plan:'Les miettes de paprika te désignent, toi ou Mathis, qui vit dans la salle de pause. Accuse-le. Ta sieste derrière le bar est un alibi crédible : « j’étais crevée ».',
+       knows:'Personne ne t’a vue, mais Nadia a pu t’apercevoir quitter le bar, et Mathis a pu t’entendre dans l’escalier.'},
+    b:{knows:'À 22 h 38, depuis la terrasse, tu as vu par la fenêtre Léa monter l’escalier vers la salle de direction, alors qu’elle jure n’avoir pas quitté le bar.'},
+    a:{knows:'Avant le karaoké, tu as entendu Léa lancer à Édouard : « Mon algorithme, c’est moi qui l’ai écrit, vous allez me le payer. »'}
+   }}
+ }}
+];
 
 var STEPS=[
   {id:'scene',title:'La scène du crime',hint:'Une personne lit le texte à voix haute pour tout le monde.',clue:'scene'},
   {id:'fiches',title:'Lecture des fiches',hint:'Chacun lit sa fiche en privé, lampe allumée, sans un mot aux autres.',dur:'fiches'},
-  {id:'alibis',title:'Manche 1 · Les alibis',hint:'Chacun raconte où il était pendant la coupure, de 23 h 50 à minuit cinq. Les autres peuvent interrompre.',dur:'alibis'},
+  {id:'alibis',title:'Manche 1 · Les alibis',hint:'',dur:'alibis'},
   {id:'indice1',title:'Manche 2 · Premier indice',hint:'Révélez l’indice, puis chacun pose deux questions à chacun des deux autres.',clue:'c1',dur:'indice1'},
   {id:'indice2',title:'Manche 3 · Second indice',hint:'Un nouvel indice brouille les pistes. Discussion libre.',clue:'c2',dur:'indice2'}
 ];
 var DUR_LABELS={fiches:'Lecture des fiches',alibis:'Manche 1 · alibis',indice1:'Manche 2 · indice n°1',indice2:'Manche 3 · indice n°2'};
 
 /* ---------- État ---------- */
-var KEY='belvedere-v1';
+var KEY='murderparty-v2';
 var DEF={code:'',me:null,step:0,seen:{scene:false,c1:false,c2:false},dur:{fiches:3,alibis:5,indice1:7,indice2:7},pick:null,verdict:false};
 function clone(o){return JSON.parse(JSON.stringify(o));}
 function load(){
@@ -267,7 +377,7 @@ function load(){
     var r=localStorage.getItem(KEY);
     if(r){
       var o=JSON.parse(r);
-      if(typeof o.code==='string'&&/^\d{4}$/.test(o.code)) s.code=o.code;
+      if(typeof o.code==='string'&&/^[123]\d{3}$/.test(o.code)) s.code=o.code;
       if(IDS.indexOf(o.me)>=0&&s.code) s.me=o.me;
       if(typeof o.step==='number'&&o.step>=0&&o.step<STEPS.length) s.step=o.step;
       if(o.seen){['scene','c1','c2'].forEach(function(k){s.seen[k]=!!o.seen[k];});}
@@ -288,13 +398,23 @@ function hash(str){
   h^=h>>>13;h=Math.imul(h,0x5bd1e995);h^=h>>>15;
   return h>>>0;
 }
-function culprit(){return S.code?IDS[hash('belvedere:'+S.code)%3]:null;}
-function gen(){
-  var n;
-  try{var a=new Uint32Array(1);crypto.getRandomValues(a);n=a[0]%10000;}catch(e){n=Math.floor(Math.random()*10000);}
-  return String(n).padStart(4,'0');
+function ST(){return S.code?STORIES[+S.code.charAt(0)-1]:null;}
+function culprit(){return S.code?IDS[hash('murder:'+S.code)%3]:null;}
+function gen(n){
+  var r;
+  try{var a=new Uint32Array(2);crypto.getRandomValues(a);r=a;}catch(e){r=[Math.floor(Math.random()*4294967296),Math.floor(Math.random()*4294967296)];}
+  var d=n||(1+r[1]%3);
+  return String(d)+String(r[0]%1000).padStart(3,'0');
 }
-function first(id){return CH[id].name.split(' ')[0];}
+function first(id){return ST().CH[id].name.split(' ')[0];}
+function codeNote(v){
+  var m=/^[123]/.test(v)?STORIES[+v.charAt(0)-1]:null;
+  return m?'Histoire n°'+m.n+' : '+m.title:'';
+}
+function clockHTML(t,aria){
+  var p=t.split(':');
+  return '<div class="clock-hero" role="img" aria-label="'+aria+'"><span>'+p[0]+'</span><span class="c">:</span><span>'+p[1]+'</span></div>';
+}
 
 /* ---------- Onglet Fiche ---------- */
 function confirmBox(what,msg,yesLabel,yesAct){
@@ -303,35 +423,40 @@ function confirmBox(what,msg,yesLabel,yesAct){
 }
 
 function setupHTML(){
+  var tags=STORIES.map(function(s){
+    return '<button class="tag" data-act="story" data-n="'+s.n+'" aria-pressed="false"><span class="tx"><span class="nm">'+s.title+'</span><span class="ti">'+s.tagline+'</span></span><span class="lb">N°'+s.n+'</span></button>';
+  }).join('');
   return '<div class="stack">'+
-    '<div class="stack-s"><div class="clock-hero" role="img" aria-label="23 heures 55"><span>23</span><span class="c">:</span><span>55</span></div><p class="eyebrow">L’heure du crime</p></div>'+
-    '<h1 class="h1">Meurtre au <em>Belvédère</em></h1>'+
-    '<p class="lead">Trois suspects, un coupable tiré au sort, une demi-heure pour le démasquer. Chacun joue sur son téléphone, ou passez-vous un seul téléphone.</p>'+
-    '<div class="field"><label class="eyebrow" for="code">Code de partie, le même pour les trois</label>'+
+    '<div class="stack-s"><p class="eyebrow">Trois suspects, un coupable</p><h1 class="h1">Murder <em>Party</em></h1></div>'+
+    '<p class="lead">Un crime, trois suspects, un coupable tiré au sort et une demi-heure pour le démasquer. Chacun joue sur son téléphone, ou passez-vous un seul téléphone.</p>'+
+    '<div class="stack-s"><p class="eyebrow">1 · Choisissez l’histoire</p>'+tags+'</div>'+
+    '<div class="field"><label class="eyebrow" for="code">2 · Code de partie, le même pour les trois</label>'+
     '<input id="code" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="0000" aria-describedby="codehelp">'+
+    '<p class="note" id="codestory" aria-live="polite"></p>'+
     (ui.err?'<p class="err" role="alert">'+ui.err+'</p>':'')+
-    '<p class="note" id="codehelp">Un joueur tire un code et le dit à voix haute, les deux autres le tapent.</p></div>'+
-    '<div class="row fill"><button class="btn" data-act="rand">Tirer un code</button><button class="btn primary" data-act="setcode">Valider le code</button></div>'+
+    '<p class="note" id="codehelp">Le premier chiffre est le numéro de l’histoire. Un joueur choisit une histoire, dit le code à voix haute, les deux autres le tapent.</p></div>'+
+    '<div class="row fill"><button class="btn" data-act="rand">Histoire au hasard</button><button class="btn primary" data-act="setcode">Valider le code</button></div>'+
   '</div>';
 }
 
 function pickHTML(){
+  var st=ST();
   var tags=IDS.map(function(id){
-    var c=CH[id];
+    var c=st.CH[id];
     return '<button class="tag" data-act="sel" data-id="'+id+'" aria-pressed="'+(ui.sel===id)+'"><span class="tx"><span class="nm">'+c.name+'</span><span class="ti">'+c.title+'</span></span><span class="lb">'+c.tag+'</span></button>';
   }).join('');
   return '<div class="stack">'+
-    '<div class="stack-s"><p class="eyebrow">Partie n° '+S.code+'</p><h2 class="h2">Qui es-tu ?</h2></div>'+
-    '<p class="lead">Chacun choisit un personnage différent, à voix haute. Ne regarde jamais la fiche des autres.</p>'+
+    '<div class="stack-s">'+clockHTML(st.time,st.timeAria)+'<p class="eyebrow">L’heure du crime · histoire n°'+st.n+'</p></div>'+
+    '<div class="stack-s"><h2 class="h2">'+st.title+'</h2><p class="lead">Qui es-tu ? Chacun choisit un personnage différent, à voix haute. Ne regarde jamais la fiche des autres.</p></div>'+
     '<div class="stack-s">'+tags+'</div>'+
     '<button class="btn primary block" data-act="confirmme"'+(ui.sel?'':' disabled')+'>'+(ui.sel?'Je suis '+first(ui.sel)+' · allumer la lampe':'Choisis ton personnage')+'</button>'+
-    '<button class="link" data-act="ask" data-what="code">Changer le code de partie</button>'+
+    '<button class="link" data-act="ask" data-what="code">Changer d’histoire ou de code</button>'+
     confirmBox('code','Cela efface le code et tout ce qui a été révélé sur ce téléphone.','Oui, changer','newgame')+
   '</div>';
 }
 
 function lockHTML(){
-  var c=CH[S.me];
+  var c=ST().CH[S.me];
   return '<div class="stack">'+
     '<div class="stack-s"><p class="eyebrow">Partie n° '+S.code+'</p><h2 class="h2">Tu es <em>'+c.name+'</em></h2><p class="lead">'+c.title+'</p></div>'+
     '<button class="btn primary block" data-act="light">Allumer la lampe</button>'+
@@ -342,23 +467,23 @@ function lockHTML(){
 }
 
 function sheetHTML(){
-  var cu=culprit(),me=S.me,c=CH[me],isC=cu===me,d=SCN[cu].p[me];
+  var st=ST(),cu=culprit(),me=S.me,c=st.CH[me],isC=cu===me,d=st.SCN[cu].p[me];
   var e=c.fem?'e':'';
   var secs=isC?[
-    ['Ton lien avec Roche',c.lien],
+    ['Ton lien avec '+st.victimLien,c.lien],
     ['Ton alibi officiel',c.alibi+' Ce n’est pas vrai.'],
     ['Ce que tu as fait',d.did],
     ['Ton plan',d.plan],
     ['Ce que tu sais',d.knows]
   ]:[
-    ['Ton lien avec Roche',c.lien],
+    ['Ton lien avec '+st.victimLien,c.lien],
     ['Ton alibi officiel',c.alibi+' C’est vrai, mais incomplet.'],
     ['Ce que tu caches',c.secret],
     ['Ce que tu sais',d.knows]
   ];
   return '<div class="stack">'+
     '<div class="row between"><p class="eyebrow">Fiche secrète</p><button class="btn small ghost" data-act="dark">Éteindre la lampe</button></div>'+
-    '<div class="role '+(isC?'bad':'ok')+'"><b>'+(isC?'Coupable':'Innocent'+e)+'</b><span>'+(isC?'Tu as tué Maximilien Roche. Tu peux mentir sur tout, sauf sur les indices révélés à tous.':'Tu dis la vérité sur le crime. Tu peux seulement garder ton secret pour toi.')+'</span></div>'+
+    '<div class="role '+(isC?'bad':'ok')+'"><b>'+(isC?'Coupable':'Innocent'+e)+'</b><span>'+(isC?'Tu as tué '+st.victim+'. Tu peux mentir sur tout, sauf sur les indices révélés à tous.':'Tu dis la vérité sur le crime. Tu peux seulement garder ton secret pour toi.')+'</span></div>'+
     '<article class="sheet"><div class="sec head"><h2 class="h2">'+c.name+'</h2><p class="muted">'+c.title+'</p></div>'+
     secs.map(function(s){return '<div class="sec"><p class="eyebrow">'+s[0]+'</p><p>'+s[1]+'</p></div>';}).join('')+
     '</article>'+
@@ -457,17 +582,24 @@ function treset(){
   t.running=false;t.done=false;t.left=t.total;updateTimerUI();
 }
 
+function hintFor(st){
+  if(st.id==='alibis'){
+    var s=ST();
+    return 'Chacun raconte où il était '+(s?s.window:'au moment du crime')+'. Les autres peuvent interrompre.';
+  }
+  return st.hint;
+}
+
 function revealHTML(st){
   var k=st.clue;
   if(!k)return '';
-  var key=k==='scene'?'scene':k;
   var label=k==='scene'?'Lire la scène du crime':(k==='c1'?'Révéler le premier indice':'Révéler le second indice');
-  if(k==='c2'&&!S.code)return '<p class="note">Entre d’abord le code de partie dans l’onglet Ma fiche : cet indice dépend du coupable.</p>';
-  if(!S.seen[key])return '<button class="btn block" data-act="reveal" data-k="'+key+'">'+label+'</button>';
-  var head,text;
-  if(k==='scene'){head='Scène du crime · 23:50 à 00:05';text=SCENE;}
-  else if(k==='c1'){head='Pièce n°1 · 23:55';text=CLUE1;}
-  else{head='Pièce n°2';text=SCN[culprit()].clue2;}
+  if(!S.code)return '<p class="note">Entre d’abord le code de partie dans l’onglet Ma fiche : la scène et les indices dépendent de l’histoire.</p>';
+  if(!S.seen[k])return '<button class="btn block" data-act="reveal" data-k="'+k+'">'+label+'</button>';
+  var s=ST(),head,text;
+  if(k==='scene'){head='Scène du crime · '+s.win;text=s.scene;}
+  else if(k==='c1'){head='Pièce n°1 · '+s.time;text=s.clue1;}
+  else{head='Pièce n°2';text=s.SCN[culprit()].clue2;}
   return '<div class="evidence"><p class="eyebrow">'+head+'</p><p>'+text+'</p></div>';
 }
 
@@ -484,7 +616,7 @@ function renderEnquete(){
   $('#tab-enquete').innerHTML='<div class="stack">'+
     '<div class="track" role="group" aria-label="Étapes de la partie">'+track+'</div>'+
     '<div class="stack-s"><p class="eyebrow">Étape '+(i+1)+' sur '+STEPS.length+'</p><h2 class="h2">'+st.title+'</h2></div>'+
-    '<p class="lead">'+st.hint+'</p>'+
+    '<p class="lead">'+hintFor(st)+'</p>'+
     revealHTML(st)+timer+
     '<div class="row fill"><button class="btn" data-act="prev"'+(i===0?' disabled':'')+'>Précédent</button>'+nav+'</div>'+
     '<p class="note">Un seul téléphone suffit pour servir de table : on y lit la scène, les indices et on lance le minuteur.</p>'+
@@ -511,21 +643,21 @@ function renderVote(){
     el.innerHTML='<div class="stack"><h2 class="h2">Le vote</h2><p class="lead">Entre d’abord le code de partie dans l’onglet Ma fiche.</p></div>';
     return;
   }
-  var cu=culprit();
+  var st=ST(),cu=culprit();
   if(S.verdict){
     var win=S.pick===cu;
     var line;
-    if(win)line='Le groupe a désigné '+CH[cu].name+', et c’était bien le coupable.';
+    if(win)line='Le groupe a désigné '+st.CH[cu].name+', et c’était bien le coupable.';
     else if(S.pick==='none')line='Personne n’a réuni deux doigts. Le coupable s’en sort.';
-    else line='Le groupe a désigné '+CH[S.pick].name+', une innocente ou un innocent. Le coupable court toujours.';
+    else line='Le groupe a désigné '+st.CH[S.pick].name+', qui est innocent'+(st.CH[S.pick].fem?'e':'')+'. Le coupable court toujours.';
     h='<div class="stack">'+
       '<div class="verdict '+(win?'ok':'bad')+'"><b>'+(win?'Les innocents gagnent':'Le coupable gagne')+'</b><span>'+line+'</span></div>'+
-      '<div class="stack-s"><p class="eyebrow">Le coupable</p><h2 class="h2">'+CH[cu].name+'</h2></div>'+
-      '<div class="evidence"><p class="eyebrow">Ce qui s’est vraiment passé</p><p>'+SCN[cu].story+'</p></div>'+
+      '<div class="stack-s"><p class="eyebrow">Le coupable</p><h2 class="h2">'+st.CH[cu].name+'</h2></div>'+
+      '<div class="evidence"><p class="eyebrow">Ce qui s’est vraiment passé</p><p>'+st.SCN[cu].story+'</p></div>'+
       '<button class="btn primary block" data-act="newgame">Nouvelle partie</button>'+
     '</div>';
   }else if(S.pick){
-    var who=S.pick==='none'?'Personne (trois doigts différents)':CH[S.pick].name;
+    var who=S.pick==='none'?'Personne (trois doigts différents)':st.CH[S.pick].name;
     h='<div class="stack">'+
       '<div class="stack-s"><p class="eyebrow">Vote enregistré</p><h2 class="h2">Le groupe désigne : <em>'+who+'</em></h2></div>'+
       '<p class="lead">Tout le monde est d’accord sur ce résultat ? La vérité s’affichera ensuite, sans retour possible.</p>'+
@@ -536,7 +668,7 @@ function renderVote(){
   }else if(ui.vote==='count'){
     h='<div class="stack"><p class="eyebrow" style="text-align:center">Tenez vos doigts prêts</p><div class="bignum'+(ui.n>0?'':' word')+'" aria-live="assertive">'+(ui.n>0?ui.n:'Pointez !')+'</div></div>';
   }else if(ui.vote==='pick'){
-    var tags=IDS.map(function(id){var c=CH[id];return '<button class="tag" data-act="vpick" data-id="'+id+'" aria-pressed="false"><span class="tx"><span class="nm">'+c.name+'</span><span class="ti">'+c.title+'</span></span><span class="lb">'+c.tag+'</span></button>';}).join('');
+    var tags=IDS.map(function(id){var c=st.CH[id];return '<button class="tag" data-act="vpick" data-id="'+id+'" aria-pressed="false"><span class="tx"><span class="nm">'+c.name+'</span><span class="ti">'+c.title+'</span></span><span class="lb">'+c.tag+'</span></button>';}).join('');
     tags+='<button class="tag" data-act="vpick" data-id="none" aria-pressed="false"><span class="tx"><span class="nm">Personne</span><span class="ti">Trois doigts, trois suspects différents</span></span></button>';
     h='<div class="stack"><div class="stack-s"><p class="eyebrow">Résultat du vote</p><h2 class="h2">Qui a reçu au moins deux doigts ?</h2></div><div class="stack-s">'+tags+'</div></div>';
   }else{
@@ -551,16 +683,17 @@ function renderVote(){
 
 /* ---------- Onglet Règles ---------- */
 function renderRegles(){
-  var d=S.dur;
+  var d=S.dur,st=ST();
   var sets=Object.keys(DUR_LABELS).map(function(k){
     return '<div class="set"><span>'+DUR_LABELS[k]+'</span><span class="ctl"><button class="btn small" data-act="dur" data-k="'+k+'" data-d="-1" aria-label="Moins une minute : '+DUR_LABELS[k]+'">−</button><span class="val">'+d[k]+' min</span><button class="btn small" data-act="dur" data-k="'+k+'" data-d="1" aria-label="Plus une minute : '+DUR_LABELS[k]+'">+</button></span></div>';
   }).join('');
+  var vict=st?'La victime, '+st.victim+', n’est pas jouée. Vous êtes les trois suspects.':'La victime n’est pas jouée. Vous êtes les trois suspects.';
   $('#tab-regles').innerHTML='<div class="stack">'+
-    '<div class="stack-s"><p class="eyebrow">Version 1</p><h2 class="h2">Règles du jeu</h2></div>'+
+    '<div class="stack-s"><p class="eyebrow">Version 2</p><h2 class="h2">Règles du jeu</h2></div>'+
     '<section class="rule"><h3>Mise en place</h3><ul>'+
-      '<li>La victime, Maximilien Roche, n’est pas jouée. Vous êtes les trois suspects.</li>'+
-      '<li>Le code de partie désigne le coupable en secret : lui seul le sait.</li>'+
-      '<li>Chaque fiche donne : ton lien avec Roche, ton alibi officiel, ce que tu caches et ce que tu sais.</li>'+
+      '<li>'+vict+'</li>'+
+      '<li>Le premier chiffre du code choisit l’histoire. Le reste du code désigne le coupable en secret : lui seul le sait.</li>'+
+      '<li>Chaque fiche donne : ton lien avec la victime, ton alibi officiel, ce que tu caches et ce que tu sais.</li>'+
     '</ul></section>'+
     '<section class="rule"><h3>Déroulé</h3><ol>'+
       '<li>Scène du crime, lue à voix haute.</li>'+
@@ -580,7 +713,7 @@ function renderRegles(){
       '<li>Sinon, le coupable gagne.</li>'+
     '</ul></section>'+
     '<section class="rule"><h3>Comment jouer</h3><ul>'+
-      '<li>Chacun ouvre le lien sur son téléphone, entre le même code et choisit un personnage différent.</li>'+
+      '<li>Chacun ouvre le site sur son téléphone, entre le même code et choisit un personnage différent.</li>'+
       '<li>Un seul téléphone pour trois ? Même chose, en le passant de main en main. Éteignez la lampe avant de le passer.</li>'+
     '</ul></section>'+
     '<section class="rule"><h3>Régler la durée des manches</h3><div>'+sets+'</div></section>'+
@@ -603,6 +736,8 @@ function showTab(){
   window.scrollTo(0,0);
 }
 function renderAll(){
+  var st=ST();
+  $('#brand').textContent=st?st.title:'Murder party';
   $('#gametag').textContent=S.code?'Partie n° '+S.code:'';
   renderFiche();renderEnquete();renderVote();renderRegles();
 }
@@ -616,7 +751,11 @@ function newGame(){
 }
 function setCode(){
   var i=$('#code'),v=i?i.value:'';
-  if(!/^\d{4}$/.test(v)){ui.err='Le code doit faire exactement 4 chiffres.';renderFiche();var j=$('#code');if(j){j.value=v;j.focus();}return;}
+  if(!/^[123]\d{3}$/.test(v)){
+    ui.err='Le code compte 4 chiffres et commence par 1, 2 ou 3 (le numéro de l’histoire).';
+    renderFiche();var j=$('#code');if(j){j.value=v;$('#codestory').textContent=codeNote(v);j.focus();}
+    return;
+  }
   ui.err='';S.code=v;S.me=null;ui.sel=null;save();renderAll();window.scrollTo(0,0);
 }
 
@@ -626,7 +765,18 @@ document.addEventListener('click',function(e){
   var a=b.dataset.act;
   switch(a){
     case 'go':location.hash=b.dataset.t;break;
-    case 'rand':{var i=$('#code');if(i)i.value=gen();break;}
+    case 'story':{
+      var i=$('#code');
+      if(i){i.value=gen(+b.dataset.n);$('#codestory').textContent=codeNote(i.value);}
+      Array.prototype.forEach.call(document.querySelectorAll('[data-act="story"]'),function(x){x.setAttribute('aria-pressed',x===b?'true':'false');});
+      break;
+    }
+    case 'rand':{
+      var j=$('#code');
+      if(j){j.value=gen();$('#codestory').textContent=codeNote(j.value);}
+      Array.prototype.forEach.call(document.querySelectorAll('[data-act="story"]'),function(x){x.setAttribute('aria-pressed',(j&&x.dataset.n===j.value.charAt(0))?'true':'false');});
+      break;
+    }
     case 'setcode':setCode();break;
     case 'sel':ui.sel=b.dataset.id;renderFiche();break;
     case 'confirmme':if(ui.sel){S.me=ui.sel;ui.lit=true;save();renderFiche();window.scrollTo(0,0);}break;
@@ -655,7 +805,10 @@ document.addEventListener('click',function(e){
   }
 });
 document.addEventListener('input',function(e){
-  if(e.target.id==='code')e.target.value=e.target.value.replace(/\D/g,'').slice(0,4);
+  if(e.target.id==='code'){
+    e.target.value=e.target.value.replace(/\D/g,'').slice(0,4);
+    var n=$('#codestory');if(n)n.textContent=codeNote(e.target.value);
+  }
 });
 document.addEventListener('keydown',function(e){
   if(e.key==='Enter'&&e.target.id==='code'){e.preventDefault();setCode();}
@@ -673,6 +826,5 @@ showTab();renderAll();
 setInterval(tick,250);
 })();
 </script>
-
 </body>
 </html>
