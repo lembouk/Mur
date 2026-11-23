@@ -390,7 +390,7 @@ function load(){
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 var S=load();
-var ui={lit:false,sel:null,confirm:null,err:'',vote:'idle',n:3};
+var ui={lit:false,sel:null,confirm:null,err:'',vote:'idle',n:3,mode:null};
 
 function hash(str){
   var h=2166136261;
@@ -423,6 +423,39 @@ function confirmBox(what,msg,yesLabel,yesAct){
 }
 
 function setupHTML(){
+  var head='<div class="stack-s"><p class="eyebrow">Trois suspects, un coupable</p><h1 class="h1">Murder <em>Party</em></h1></div>'+
+    '<p class="lead">Un crime, trois suspects, un coupable tiré au sort et une demi-heure pour le démasquer. Chacun joue sur son téléphone, ou passez-vous un seul téléphone.</p>';
+  if(ui.mode==='host'){
+    var htags=STORIES.map(function(s){
+      return '<button class="tag" data-act="pickstory" data-n="'+s.n+'" aria-pressed="false"><span class="tx"><span class="nm">'+s.title+'</span><span class="ti">'+s.tagline+'</span></span><span class="lb">N°'+s.n+'</span></button>';
+    }).join('');
+    htags+='<button class="tag" data-act="pickstory" data-n="0" aria-pressed="false"><span class="tx"><span class="nm">Au hasard</span><span class="ti">Une histoire tirée au sort</span></span><span class="lb">?</span></button>';
+    return '<div class="stack">'+
+      '<div class="stack-s"><p class="eyebrow">Une seule personne lance la partie</p><h2 class="h2">Choisis l’histoire</h2></div>'+
+      '<p class="lead">Tu obtiendras un code à dicter aux deux autres. Ils le taperont avec « Rejoindre avec un code ». Ne lancez pas chacun une partie : vous n’auriez pas le même coupable.</p>'+
+      '<div class="stack-s">'+htags+'</div>'+
+      '<button class="link" data-act="back">Retour</button>'+
+    '</div>';
+  }
+  if(ui.mode==='join'){
+    return '<div class="stack">'+
+      '<div class="stack-s"><p class="eyebrow">Rejoindre une partie</p><h2 class="h2">Tape le code</h2></div>'+
+      '<div class="field"><label class="eyebrow" for="code">Code donné par celui qui a lancé la partie</label>'+
+      '<input id="code" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="0000" aria-describedby="codehelp">'+
+      '<p class="note" id="codestory" aria-live="polite"></p>'+
+      (ui.err?'<p class="err" role="alert">'+ui.err+'</p>':'')+
+      '<p class="note" id="codehelp">Vérifie ensuite que le nom de l’histoire est le même que sur les autres téléphones.</p></div>'+
+      '<button class="btn primary block" data-act="setcode">Rejoindre</button>'+
+      '<button class="link" data-act="back">Retour</button>'+
+    '</div>';
+  }
+  return '<div class="stack">'+head+
+    '<button class="btn primary block" data-act="host">Lancer une partie</button>'+
+    '<button class="btn block" data-act="join">Rejoindre avec un code</button>'+
+    '<p class="note">Une seule personne lance la partie et dicte le code. Les deux autres rejoignent avec ce code. Avec un seul téléphone, lancez la partie puis passez-vous le téléphone.</p>'+
+  '</div>';
+}
+function setupHTMLOld(){
   var tags=STORIES.map(function(s){
     return '<button class="tag" data-act="story" data-n="'+s.n+'" aria-pressed="false"><span class="tx"><span class="nm">'+s.title+'</span><span class="ti">'+s.tagline+'</span></span><span class="lb">N°'+s.n+'</span></button>';
   }).join('');
@@ -448,6 +481,7 @@ function pickHTML(){
   return '<div class="stack">'+
     '<div class="stack-s">'+clockHTML(st.time,st.timeAria)+'<p class="eyebrow">L’heure du crime · histoire n°'+st.n+'</p></div>'+
     '<div class="stack-s"><h2 class="h2">'+st.title+'</h2><p class="lead">Qui es-tu ? Chacun choisit un personnage différent, à voix haute. Ne regarde jamais la fiche des autres.</p></div>'+
+    '<div style="border:1px solid var(--lamp);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:4px"><p class="eyebrow" style="color:var(--lamp)">Code de partie</p><div style="font-family:var(--f-mono);font-size:40px;letter-spacing:.2em;line-height:1.1">'+S.code+'</div><p class="note">Les trois téléphones doivent afficher exactement ce code et cette histoire. Sinon, vous n’aurez pas le même coupable.</p></div>'+
     '<div class="stack-s">'+tags+'</div>'+
     '<button class="btn primary block" data-act="confirmme"'+(ui.sel?'':' disabled')+'>'+(ui.sel?'Je suis '+first(ui.sel)+' · allumer la lampe':'Choisis ton personnage')+'</button>'+
     '<button class="link" data-act="ask" data-what="code">Changer d’histoire ou de code</button>'+
@@ -744,7 +778,7 @@ function renderAll(){
 function newGame(){
   var dur=S.dur;
   S=clone(DEF);S.dur=dur;
-  ui.lit=false;ui.sel=null;ui.confirm=null;ui.err='';ui.vote='idle';
+  ui.lit=false;ui.sel=null;ui.confirm=null;ui.err='';ui.vote='idle';ui.mode=null;
   Object.keys(timers).forEach(function(k){delete timers[k];});
   save();renderAll();
   if(curTab()!=='fiche')location.hash='fiche';else window.scrollTo(0,0);
@@ -756,7 +790,7 @@ function setCode(){
     renderFiche();var j=$('#code');if(j){j.value=v;$('#codestory').textContent=codeNote(v);j.focus();}
     return;
   }
-  ui.err='';S.code=v;S.me=null;ui.sel=null;save();renderAll();window.scrollTo(0,0);
+  ui.err='';ui.mode=null;S.code=v;S.me=null;ui.sel=null;save();renderAll();window.scrollTo(0,0);
 }
 
 document.addEventListener('click',function(e){
@@ -777,6 +811,10 @@ document.addEventListener('click',function(e){
       Array.prototype.forEach.call(document.querySelectorAll('[data-act="story"]'),function(x){x.setAttribute('aria-pressed',(j&&x.dataset.n===j.value.charAt(0))?'true':'false');});
       break;
     }
+    case 'host':ui.mode='host';ui.err='';renderFiche();window.scrollTo(0,0);break;
+    case 'join':ui.mode='join';ui.err='';renderFiche();window.scrollTo(0,0);break;
+    case 'back':ui.mode=null;ui.err='';renderFiche();break;
+    case 'pickstory':{S.code=gen(+b.dataset.n||0);S.me=null;ui.sel=null;ui.mode=null;save();renderAll();window.scrollTo(0,0);break;}
     case 'setcode':setCode();break;
     case 'sel':ui.sel=b.dataset.id;renderFiche();break;
     case 'confirmme':if(ui.sel){S.me=ui.sel;ui.lit=true;save();renderFiche();window.scrollTo(0,0);}break;
